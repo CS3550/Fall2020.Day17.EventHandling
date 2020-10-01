@@ -7,7 +7,7 @@
     <title>Event Handling</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <style>
-        body {
+        /* body {
             margin-top: 2rem;
         }
 
@@ -15,18 +15,31 @@
             font-family: monospace;
             font-size: 3rem;
         }
+
+        .text-area-container {
+            text-align: center;
+            margin: 1rem;
+        }
+
+        .undo-redo-container {
+            text-align: center;
+            margin: 1rem;
+        }
+
+        table {
+            margin: 0 auto;
+        } */
     </style>
 </head>
 
 <body>
     <div>
-        <div style="text-align:center;margin:1rem;">
+        <div class="undo-redo-container">
             <button onclick="undo()" id="undo">Undo</button>
             <button onclick="redo()" id="redo">Redo</button>
         </div>
 
-
-        <table style="margin:0 auto;">
+        <table>
             <tr>
                 <td><button id="0" onclick="clicker(0)"></button></td>
                 <td><button id="1" onclick="clicker(1)"></button></td>
@@ -44,163 +57,164 @@
             </tr>
         </table>
 
+        <div class="text-area-container">
+            <textarea id="log" rows=15 cols=50></textarea>
+        </div>
     </div>
-    <div style="text-align: center;margin:1rem;">
-        <textarea id="log" rows=15 cols=50></textarea>
-    </div>
-
-
 
     <script>
+
+        //The tic tac toe model
+
         let X = "X";
         let O = "O";
         let BLANK = "&nbsp;";
         let BOARD_FULL = "BOARD FULL";
 
-        let DO = "DO";
-        let UNDO  = "UNDO";
-        let REDO = "REDO";
+        class Model {
+            // constructor() {
+            //     this.model = []
+            //     for (let i = 0; i < 9; i++) {
+            //         this.model[i] = BLANK;
+            //     }
+            // }
+            // getTurn() {
+            //     let countX = this.model.reduce((a, b) => b == X ? a + 1 : a, 0)
+            //     let countO = this.model.reduce((a, b) => b == O ? a + 1 : a, 0)
+
+            //     if (countX + countO == 9) return BOARD_FULL;
+            //     return countX == countO ? X : O;
+            // }
+        }
+
+        //Command Object
+        class ClickCommand {
+            // constructor(model, index, value) {
+            //     if (!model) return;
+            //     [this.model, this.index, this.value] = [model, index, value];
+            //     this.originalValue = model.model[index];
+            // }
+            // do() {
+            //     this.model.model[this.index] = this.value;
+            // }
+            // doString() {
+            //     return `Set the value of ${this.index} to ${this.value}.`;
+            // }
+            // undo() {
+            //     this.model.model[this.index] = this.originalValue;
+            // }
+            // undoString() {
+            //     return `Set the value of ${this.index} to ${this.originalValue}.`;
+            // }
+        }
+
+
+        //Undo and redo functionality
+        // let DO = "DO";
+        // let UNDO = "UNDO";
+        // let REDO = "REDO";
 
         let undoStack = [];
         let redoStack = [];
-        let listeners = [];
 
-        function updateButtons(command) {
-            for (let i = 0; i < 9; i++) {
-                document.getElementById("" + i).innerHTML = command.model.model[i];
-            }
+        //Simple helper functions
+        function pop(arr){
+            return arr.splice(arr.length - 1,1)[0];
+        }
+        function last(arr){
+            return arr[arr.length-1];
+        }
+        function isEmpty(arr){
+            return arr.length == 0;
         }
 
-        function updateUndoRedo() {
-            let undoElement = document.getElementById("undo");
-            let redoElement = document.getElementById("redo");
+        // function undo() {
+        //     if (isEmpty(undoStack)) return;
+        //     let command = pop(undoStack);
+        //     command.undo();
+        //     let string = command.undoString();
+        //     redoStack.push(command);
+        //     handleEvent("undoRedo", null, UNDO, string);
+        //     handleEvent(command.constructor.name, command, UNDO, string);
+        // }
 
-            undoElement.disabled = undoStack.length == 0;
-            redoElement.disabled = redoStack.length == 0;
+        // function redo() {
+        //     if (isEmpty(redoStack.length)) return;
+        //     let command = pop(redoStack);
+        //     command.do();
+        //     let string = command.doString();
+        //     undoStack.push(command);
+        //     handleEvent("undoRedo", null, REDO, string);
+        //     handleEvent(command.constructor.name, command, REDO, string);
+        // }
 
-            if(undoStack.length == 0)
-                undoElement.innerHTML = "Undo"
-            else
-                undoElement.innerHTML = "Undo: " + undoStack[undoStack.length - 1].undoString();
+        // function doCommand(command) {
+        //     command.do();
+        //     let string = command.doString();
+        //     undoStack.push(command);
+        //     redoStack = [];
+        //     handleEvent("undoRedo", null, DO, string)
+        //     handleEvent(command.constructor.name, command, DO, string);
+        // }
 
-            if(redoStack.length == 0)
-                redoElement.innerHTML = "Redo"
-            else
-                redoElement.innerHTML = "Redo: " + redoStack[redoStack.length - 1].doString();
+        //Event Handling Logic
+        // let listeners = [];
 
-
-            
-        }
-
-        function updateLog(command, method, string){
-            document.getElementById("log").innerHTML += `${string} (${method})\n`; 
-        }
-
-        function undo() {
-            if (undoStack.length == 0) return;
-            let command = undoStack.splice(undoStack.length - 1, 1)[0];
-            command.undo();
-            let string = command.undoString();
-            redoStack.push(command);
-            handleEvent("undoRedo", null, UNDO, string);
-            handleEvent(command.constructor.name, command, UNDO, string);
-        }
-
-        function redo() {
-            if (redoStack.length == 0) return;
-            let command = redoStack.splice(redoStack.length - 1, 1)[0];
-            command.do();
-            let string = command.doString();
-            undoStack.push(command);
-            handleEvent("undoRedo", null, REDO, string);
-            handleEvent(command.constructor.name, command, REDO, string);
-        }
-
-        function doCommand(command) {
-            command.do();
-            let string = command.doString();
-            undoStack.push(command);
-            redoStack = [];
-            handleEvent("undoRedo", null, DO, string)
-            handleEvent(command.constructor.name, command, DO, string);
-        }
-
-        function handleEvent(name, params, method, description) {
-            for (let listener of listeners) {
-                if (listener.name == name) {
-                    listener.fn(params, method, description);
-                }
-            }
-        }
+        // function handleEvent(name, params, method, description) {
+        //     listeners.filter(i=>i.name == name).forEach(i=>i.fn(params, method, description));
+        // }
 
 
+        //Event Listeners
 
-        class Model {
-            constructor() {
-                this.model = []
-                for (let i = 0; i < 9; i++) {
-                    this.model[i] = BLANK;
-                }
-            }
-        }
+        // function updateButtons(command) {
+        //     for (let i = 0; i < 9; i++) {
+        //         document.getElementById("" + i).innerHTML = command.model.model[i];
+        //     }
+        // }
 
-        class ClickCommand {
-            constructor(model, index, value) {
-                if (!model) return;
-                this.model = model;
-                this.index = index;
-                this.value = value;
-                this.originalValue = model.model[index];
-            }
-            do() {
-                this.model.model[this.index] = this.value;
-            }
-            doString(){
-                return `Set the value of ${this.index} to ${this.value}.`;
-            }
-            undo() {
-                this.model.model[this.index] = this.originalValue;
-            }
-            undoString(){
-                return `Set the value of ${this.index} to ${this.originalValue}.`;
-            }
-        }
+        // function updateUndoRedo() {
+        //     let undoElement = document.getElementById("undo");
+        //     let redoElement = document.getElementById("redo");
+
+        //     undoElement.disabled = isEmpty(undoStack);
+        //     redoElement.disabled = isEmpty(redoStack);
+
+        //     if (isEmpty(undoStack))
+        //         undoElement.innerHTML = "Undo"
+        //     else
+        //         undoElement.innerHTML = "Undo: " + last(undoStack).undoString();
+
+        //     if (isEmpty(redoStack))
+        //         redoElement.innerHTML = "Redo"
+        //     else
+        //         redoElement.innerHTML = "Redo: " + last(redoStack).doString();
+        // }
+
+        // function updateLog(command, method, string) {
+        //     document.getElementById("log").innerHTML += `${string} (${method})\n`;
+        // }
+
 
         let model = new Model();
-        updateButtons({ model: model });
-        updateUndoRedo();
+        // updateButtons({ model: model });
+        // updateUndoRedo();
 
         function clicker(index) {
-            let turn = getTurn();
-            if (turn != BOARD_FULL) {
-                if (model.model[index] == BLANK) {
-                    let clickCommand = new ClickCommand(model, index, turn);
-                    doCommand(clickCommand)
-                }
-            }
+            // let turn = model.getTurn();
+            // if (turn != BOARD_FULL) {
+            //     if (model.model[index] == BLANK) {
+            //         let clickCommand = new ClickCommand(model, index, turn);
+            //         doCommand(clickCommand)
+            //     }
+            // }
         }
 
-        function getTurn() {
-            let countX = 0;
-            let countO = 0;
 
-            for (let i = 0; i < 9; i++) {
-                if (model.model[i] == X)
-                    countX++;
-                if (model.model[i] == O)
-                    countO++;
-            }
 
-            if (countX + countO == 9)
-                return BOARD_FULL;
-            else if (countX == countO)
-                return X;
-            else return O;
-        }
-
-        listeners.push({name:new ClickCommand().constructor.name, fn:updateButtons});
-        listeners.push({name: new ClickCommand().constructor.name, fn:updateLog});
-        listeners.push({name: "undoRedo", fn:updateUndoRedo});
+        // listeners.push({ name: new ClickCommand().constructor.name, fn: updateButtons });
+        // listeners.push({ name: new ClickCommand().constructor.name, fn: updateLog });
+        // listeners.push({ name: "undoRedo", fn: updateUndoRedo });
 
 
 
